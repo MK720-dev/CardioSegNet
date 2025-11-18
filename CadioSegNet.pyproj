@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>4dfd986f-58b4-4ffe-843f-63bf9392608b</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>CadioSegNet.py</StartupFile>
+    <StartupFile>src\train.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,7 +21,28 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CadioSegNet.py" />
+    <Compile Include="config.py" />
+    <Compile Include="src\data_loader.py" />
+    <Compile Include="src\losses.py" />
+    <Compile Include="src\model_unet.py" />
+    <Compile Include="src\train.py" />
+    <Compile Include="viewer\app.py" />
+    <Compile Include="viewer\utils.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".gitignore" />
+    <Content Include="LICENSE" />
+    <Content Include="notebooks\experiments.ipynb" />
+    <Content Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="results\" />
+    <Folder Include="notebooks\" />
+    <Folder Include="results\figures\" />
+    <Folder Include="results\logs\" />
+    <Folder Include="results\models\" />
+    <Folder Include="viewer\" />
+    <Folder Include="src\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
