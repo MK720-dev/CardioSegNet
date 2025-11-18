@@ -26,7 +26,7 @@ import h5py
 import tensorflow as tf
 from pathlib import Path
 from typing import Tuple, List
-from  import  IMG_SIZE, BATCH_SIZE, SLICES_DIR, RANDOM_SEED, VAL_SPLIT
+from ..config import  IMG_SIZE, BATCH_SIZE, SLICES_DIR, RANDOM_SEED, VAL_SPLIT
 
 
 def load_h5_slice(path: Path) -> Tuple[np.ndarray, np.ndarray]:
