@@ -17,9 +17,9 @@ import tensorflow as tf
 from tensorflow import keras
 
 from config import MODEL_DIR, LR, EPOCHS
-from src.data_loader import build_datasets
-from src.model_unet import build_unet_baseline
-from src.losses import bce_dice_loss, dice_coef
+from .data_loader import build_datasets
+from .model_unet import build_unet_baseline
+from .losses import bce_dice_loss, dice_coef
 
 
 def main():
