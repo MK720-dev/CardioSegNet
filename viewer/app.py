@@ -30,6 +30,7 @@ from viewer.utils import (
     make_overlay,
 )
 
+import numpy as np 
 # ---------- Discover available patients & frames ---------- #
 
 def parse_patient_frame(path: Path):
