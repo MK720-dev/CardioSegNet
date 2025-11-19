@@ -26,7 +26,7 @@ import h5py
 import tensorflow as tf
 from pathlib import Path
 from typing import Tuple, List
-from ..config import  IMG_SIZE, BATCH_SIZE, SLICES_DIR, RANDOM_SEED, VAL_SPLIT
+from config import  IMG_SIZE, BATCH_SIZE, SLICES_DIR, RANDOM_SEED, VAL_SPLIT
 
 
 def load_h5_slice(path: Path) -> Tuple[np.ndarray, np.ndarray]:
@@ -102,7 +102,7 @@ def build_datasets():
     """
     slice_files = sorted([str(p) for p in Path(SLICES_DIR).glob("*.h5")])
     slice_files = np.array(slice_files)
-
+  
     # shuffle + split
     rng = np.random.default_rng(RANDOM_SEED)
     indices = np.arange(len(slice_files))
@@ -132,4 +132,3 @@ def build_datasets():
 
     return train_ds, val_ds
 
-build_datasets()
