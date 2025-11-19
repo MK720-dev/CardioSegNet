@@ -72,11 +72,11 @@ def preprocess(img: np.ndarray, mask: np.ndarray) -> Tuple[np.ndarray, np.ndarra
     return img, mask
 
 
-def _load_py(path: bytes):
+def _load_py(path: tf.Tensor):
     """
     2D slice loading function wrapped by tf.py_function.
     """
-    path = path.decode("utf-8")
+    path = path.numpy().decode("utf-8")
     img, mask = load_h5_slice(Path(path))
     img, mask = preprocess(img, mask)
     return img, mask

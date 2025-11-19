@@ -37,7 +37,7 @@ def main():
 
     model.summary()
 
-    best_model = MODEL_DIR / "unet_lv_baseline_slice128.h5"
+    best_model = MODEL_DIR / "unet_lv_baseline_slice128.weights.h5"
 
     callbacks = [
         keras.callbacks.ModelCheckpoint(
@@ -50,6 +50,7 @@ def main():
         ),
         keras.callbacks.EarlyStopping(
             monitor="val_dice_coef",
+            mode="max",
             patience=5,
             restore_best_weights=True,
             verbose=1,
