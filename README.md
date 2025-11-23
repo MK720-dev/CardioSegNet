@@ -10,6 +10,9 @@ This README provides a detailed technical overview of the architectural choices,
 
 ## Visual Demo
 
+Quick demo available here:  
+👉 [Download / Watch Demo](https://github.com/MK720-dev/CardioSegNet/releases/latest)
+
 ---
 
 # ----------------------------------------------------------
