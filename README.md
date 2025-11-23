@@ -1,13 +1,3 @@
-# CardioSegNet
-Below is a **clean, highly-structured, professional README** for **Phase 1** and **Phase 2** of your CardioSegNet project.
-It is written in Markdown, ready for GitHub, with placeholders for images/videos you may add later.
-
-You can paste this directly into your repo’s `README.md`.
-
-You can also break it into two separate READMEs if you plan to have subfolders for Phase 1 and Phase 2.
-
----
-
 # 📘 **CardioSegNet: Left Ventricle Segmentation Using U-Net (Phase 1 + Phase 2)**
 
 CardioSegNet is a research-grade cardiac MRI segmentation project using U-Net architectures.
