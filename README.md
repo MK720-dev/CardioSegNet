@@ -10,7 +10,7 @@ This README provides a detailed technical overview of the architectural choices,
 
 ## Visual Demo
 
-Quick demo available here:  
+Quick demo available here (click **view raw** to download):  
 👉 [Download / Watch Demo](./CardioSegNet1.0_demo.mp4)
 
 ---
