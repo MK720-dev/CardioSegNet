@@ -1,4 +1,4 @@
-# 📘 **CardioSegNet: Left Ventricle Segmentation Using U-Net (Phase 1 + Phase 2)**
+# **CardioSegNet: Left Ventricle Segmentation Using U-Net (Phase 1 + Phase 2)**
 
 CardioSegNet is a research-grade cardiac MRI segmentation project using U-Net architectures.
 The project is organized into **two phases**:
@@ -17,20 +17,20 @@ Quick demo available here (click **view raw** to download):
 
 # ----------------------------------------------------------
 
-# 🩺 **PHASE 1 — Baseline U-Net Model**
+# **PHASE 1 — Baseline U-Net Model**
 
 # ----------------------------------------------------------
 
-## 🎯 **Goal**
+## **Goal**
 
 Develop a simple, fast, and reliable **baseline** model for **binary segmentation** of the **Left Ventricle (LV)** on single 2D MRI slices.
 This serves as the foundation for more advanced modeling in Phase 2.
 
 ---
 
-# 1. 🧱 **Baseline Architecture Overview**
+# 1. **Baseline Architecture Overview**
 
-### ✔ **Input**
+### **Input**
 
 * Preprocessed 2D MRI slice
 * Grayscale
@@ -142,7 +142,7 @@ Perfect for **binary LV-only segmentation**.
 
 ---
 
-# 2. 🧪 **Training Pipeline Overview**
+# 2. **Training Pipeline Overview**
 
 ### **Loss Function: BCE + Dice**
 
@@ -173,7 +173,7 @@ Chosen for stable convergence on segmentation tasks.
 
 ---
 
-# 3. 📊 **Performance Evaluation**
+# 3. **Performance Evaluation**
 
 Model performance is evaluated using three components:
 
@@ -223,7 +223,7 @@ This provides a full anatomical assessment.
 
 ---
 
-# 4. 🎥 **Video Demo (Coming Soon)**
+# 4. **Video Demo (Coming Soon)**
 
 A full video demonstration will be added showing:
 
@@ -237,7 +237,7 @@ A full video demonstration will be added showing:
 
 # ----------------------------------------------------------
 
-# 🚀 **PHASE 2 — Enhanced U-Net + AutoML Vision**
+# **PHASE 2 — Enhanced U-Net + AutoML Vision**
 
 # ----------------------------------------------------------
 
@@ -245,7 +245,7 @@ Phase 2 expands the system into a **research-grade** segmentation framework with
 
 ---
 
-# 1. ⚙️ **Architectural Enhancements**
+# 1. **Architectural Enhancements**
 
 ### **Phase 2 U-Net adds:**
 
@@ -284,7 +284,7 @@ Phase 2 allows easy switching.
 
 ---
 
-# 2. 🧠 **Potential Improvements for Phase 2 and Beyond**
+# 2. **Potential Improvements for Phase 2 and Beyond**
 
 ### **A. Architecture Improvements**
 
@@ -349,7 +349,7 @@ These provide richer clinical insight than Dice alone.
 
 ---
 
-# 3. 🤖 **Towards AutoML-Driven Architecture Search**
+# 3. **Towards AutoML-Driven Architecture Search**
 
 Phase 2 lays the groundwork for future AutoML integration.
 
@@ -393,7 +393,7 @@ This produces a dataset that enables training of a higher-level AutoML advisor.
 
 ---
 
-# 4. 🧪 **Phase 2 Training Goals**
+# 4. **Phase 2 Training Goals**
 
 * Achieve >0.87 Dice for LV
 * Improve apex/base segmentation
@@ -403,7 +403,7 @@ This produces a dataset that enables training of a higher-level AutoML advisor.
 
 ---
 
-# 5. 🎥 **Phase 2 Demo Video (Coming Soon)**
+# 5. **Phase 2 Demo Video (Coming Soon)**
 
 A future demo will compare:
 
@@ -416,7 +416,7 @@ A future demo will compare:
 
 # ----------------------------------------------------------
 
-# 📦 **Project Structure**
+# **Project Structure**
 
 # ----------------------------------------------------------
 
