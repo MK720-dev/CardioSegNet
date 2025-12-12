@@ -612,11 +612,7 @@ Potential extensions include exploring **Focal Loss** and **Tversky-based losses
 
 ---
 
-# ----------------------------------------------------------
-
 # **Project Structure**
-
-# ----------------------------------------------------------
 
 ```
 CardioSegNet/
