@@ -181,9 +181,7 @@ Model performance is evaluated using three components:
 
 ## 3.1 **Dice Coefficient (Primary Metric)**
 
-[
-\mathrm{Dice} = \frac{2|P∩G|}{|P| + |G|}
-]
+$$\mathrm{Dice} = \frac{2|P∩G|}{|P| + |G|}$$
 
 Dice captures **overlap quality**, which is essential for medical segmentation.
 
