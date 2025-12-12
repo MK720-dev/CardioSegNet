@@ -10,11 +10,10 @@ This README provides a detailed technical overview of the architectural choices,
 
 ## Visual Demo
 
-Quick demo available here (click **view raw** to download):  
+Quick Phase 1 demo available here (click **view raw** to download):  
 👉 [Download / Watch Demo](./CardioSegNet1.0_demo.mp4)
 
-Absolutely — below is the **entire improved Phase 1 section** packaged as **one single, clean, copy-pasteable GitHub README Markdown block**.
-You can paste this **directly** into your `README.md` with no edits needed.
+Phase 2 demo will be available soon.
 
 ---
 # **PHASE 1 — Baseline U-Net Model**
