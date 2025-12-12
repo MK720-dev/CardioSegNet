@@ -11,6 +11,7 @@ For Phase 1 we focus on binary LV-vs-background, so we define:
 
 import tensorflow as tf
 from tensorflow import keras
+from config import NUM_CLASSES, SMOOTH
 
 
 def dice_coef(y_true, y_pred, smooth: float = 1e-6):
@@ -59,4 +60,54 @@ def bce_dice_loss(y_true, y_pred):
     """
     bce = keras.losses.binary_crossentropy(y_true, y_pred)
     return bce + dice_loss(y_true, y_pred)
+
+def multi_class_dice(y_true, y_pred, exclude_background=True):
+    """
+    Multi-class Dice coefficient for sparse ground truth masks.
+
+    Args:
+        y_true: (B, H, W, 1) sparse integer labels
+        y_pred: (B, H, W, C) softmax probabilities
+        exclude_background: whether to exclude class 0 from Dice
+
+    Returns:
+        Mean Dice coefficient over classes.
+    """
+
+    # Remove channel dim: (B, H, W)
+    y_true = tf.squeeze(y_true, axis=-1)
+
+    # Convert to one-hot: (B, H, W, C)
+    y_true_one_hot = tf.one_hot(tf.cast(y_true, tf.int32), depth=NUM_CLASSES)
+
+    # Choose which classes to include
+    if exclude_background:
+        y_true_one_hot = y_true_one_hot[..., 1:]
+        y_pred = y_pred[..., 1:]
+
+    # Flatten spatial dims
+    y_true_f = tf.reshape(y_true_one_hot, (-1, tf.shape(y_pred)[-1]))
+    y_pred_f = tf.reshape(y_pred, (-1, tf.shape(y_pred)[-1]))
+
+    intersection = tf.reduce_sum(y_true_f * y_pred_f, axis=0)
+    denominator = tf.reduce_sum(y_true_f + y_pred_f, axis=0)
+
+    dice_per_class = (2.0 * intersection + SMOOTH) / (denominator + SMOOTH)
+
+    return tf.reduce_mean(dice_per_class)
+
+def multi_class_dice_loss(y_true, y_pred):
+    return 1.0 - multi_class_dice(y_true, y_pred)
+
+def sparse_cce_multi_class_dice_loss(y_true, y_pred):
+    """
+    Sparse Categorical Cross Entropy + Multi-Class Dice Loss.
+    """
+
+    sce = keras.losses.SparseCategoricalCrossentropy()
+    cce_loss = sce(y_true, y_pred)
+
+    dice_loss = multi_class_dice_loss(y_true, y_pred)
+
+    return cce_loss + dice_loss
 

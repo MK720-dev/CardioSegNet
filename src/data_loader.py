@@ -26,7 +26,7 @@ import h5py
 import tensorflow as tf
 from pathlib import Path
 from typing import Tuple, List
-from config import  IMG_SIZE, BATCH_SIZE, SLICES_DIR, RANDOM_SEED, VAL_SPLIT
+from config import  IMG_SIZE, BATCH_SIZE, SLICES_DIR, RANDOM_SEED, VAL_SPLIT, SEG_MODE, NUM_CLASSES, USE_ONE_HOT
 
 
 def load_h5_slice(path: Path) -> Tuple[np.ndarray, np.ndarray]:
@@ -53,21 +53,41 @@ def preprocess(img: np.ndarray, mask: np.ndarray) -> Tuple[np.ndarray, np.ndarra
     img = img.astype(np.float32)
     mask = mask.astype(np.uint8)
 
-    # Resize
-    img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
-    mask = cv2.resize(mask, (IMG_SIZE, IMG_SIZE), interpolation=cv2.INTER_NEAREST)
+    # Extracting dimensions 
+    dimensions = img.shape
+    height = dimensions[0]
+    width = dimensions[1]
+
+    # Resize if target dimensions are different than the original one
+    if height != IMG_SIZE or width != IMG_SIZE:
+        img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+        mask = cv2.resize(mask, (IMG_SIZE, IMG_SIZE), interpolation=cv2.INTER_NEAREST)
 
     # Normalize
     max_val = img.max()
     if max_val > 0:
         img /= max_val
 
-    # Binarize LV
-    mask = (mask == 3).astype(np.float32)
+    # --- Mask formatting ---
+    if SEG_MODE == "binary":
+        # LV-only
+        mask = (mask == 3).astype(np.float32)     # (H,W)
+        mask = np.expand_dims(mask, -1)           # (H,W,1)
+
+    elif SEG_MODE == "multi-class":
+        # Keep integer labels 0..3
+        # Shape either (H,W,1) sparse or (H,W,4) one-hot
+        if USE_ONE_HOT:
+            mask = tf.one_hot(mask.astype(np.int32), depth=NUM_CLASSES).numpy().astype(np.float32)  # (H,W,4)
+        else:
+            mask = mask.astype(np.int32)
+            mask = np.expand_dims(mask, -1)       # (H,W,1)
+
+    else:
+        raise ValueError(f"Unknown SEG_MODE: {SEG_MODE}")
 
     # Add channel dims
     img = np.expand_dims(img, -1)
-    mask = np.expand_dims(mask, -1)
 
     return img, mask
 
@@ -92,7 +112,13 @@ def tf_load(path):
         Tout=[tf.float32, tf.float32],
     )
     img.set_shape([IMG_SIZE, IMG_SIZE, 1])
-    mask.set_shape([IMG_SIZE, IMG_SIZE, 1])
+    if SEG_MODE == "binary":
+        mask.set_shape([IMG_SIZE, IMG_SIZE, 1])
+    else:
+        if USE_ONE_HOT:
+            mask.set_shape([IMG_SIZE, IMG_SIZE, NUM_CLASSES])
+        else:
+            mask.set_shape([IMG_SIZE, IMG_SIZE, 1])  # sparse labels
     return img, mask
 
 

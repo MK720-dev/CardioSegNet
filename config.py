@@ -28,10 +28,19 @@ FIG_DIR = RESULTS_DIR / "figures"
 for d in (RESULTS_DIR, MODEL_DIR, LOG_DIR, FIG_DIR):
     d.mkdir(parents=True, exist_ok=True)
 
+# Segmentation Configuration
+SEG_MODE = "multi-class" # "binary" or "multi-class"
+NUM_CLASSES = 1 if SEG_MODE == "binary" else 4
+
+# Optional: Multi-class label mapping (ACDC convention: 0 bg, 1 RV, 2 MYO, 3 LV)
+USE_ONE_HOT = False   # If True, output mask as (H,W,NUM_CLASSES)
+
 # Basic training hyperparameters for quick prototyping
-IMG_SIZE = 128            # Baseline: 128x128; will upgrade to 256x256 in Phase 2
+IMG_SIZE = 128 if SEG_MODE == "binary" else 256            # Baseline: 128x128; will upgrade to 256x256 in Phase 2
 BATCH_SIZE = 8
 LR = 1e-3
 EPOCHS = 20
 VAL_SPLIT = 0.1           # Fraction of samples used for validation
 RANDOM_SEED = 42
+SMOOTH = 1e-6             # For Multi-Class Dice 
+
