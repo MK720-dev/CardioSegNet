@@ -477,7 +477,7 @@ Training uses a **hybrid loss** combining **Sparse Categorical Cross-Entropy** a
 ### Sparse Categorical Cross-Entropy
 
 $$
-\mathcal{L}*{\text{SCCE}} = - \sum*{c=1}^{C} \mathbf{1}(y = c),\log(\hat{p}_c)
+\mathcal{L}*{\text{SCCE}} = - \sum*{c=1}^{C} \mathbf{1}(y = c)\log(\hat{p}_c)
 $$
 
 This term penalizes incorrect per-pixel class predictions and encourages well-calibrated probability estimates.
