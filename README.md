@@ -481,7 +481,7 @@ For a pixel with ground-truth class label \( y_i \in \{0, \dots, C-1\} \) and pr
 $$
 \mathcal{L}_{\text{SCCE}}
 = - \frac{1}{N} \sum_{i=1}^{N}
-\log\!\left( \hat{p}_{i,\,y_i} \right)
+\log\\left( \hat{p}_{i,\,y_i} \right)
 $$
 
 This loss penalizes incorrect per-pixel class predictions and encourages well-calibrated probability estimates.
