@@ -1,4 +1,4 @@
-# viewer/app.py
+﻿# viewer/app.py
 
 """
 Interactive Dash viewer for CardioSegNet.
@@ -85,13 +85,35 @@ default_patient = AVAILABLE_PATIENTS[0] if AVAILABLE_PATIENTS else None
 default_frame = PATIENT_FRAMES[default_patient][0] if default_patient else None
 
 app.layout = html.Div(
-    style={"maxWidth": "1200px", "margin": "0 auto", "fontFamily": "Arial, sans-serif"},
+    style={
+        "maxWidth": "1300px",
+        "margin": "0 auto",
+        "fontFamily": "Arial, sans-serif",
+        "padding": "20px",
+    },
     children=[
-        html.H2("CardioSegNet LV Segmentation Viewer"),
 
+        # -----------------------
+        # Title
+        # -----------------------
+        html.H2(
+            "CardioSegNet LV Segmentation Viewer",
+            style={"marginBottom": "20px"},
+        ),
+
+        # -----------------------
+        # Top Controls Row
+        # -----------------------
         html.Div(
-            style={"display": "flex", "gap": "20px", "marginBottom": "20px"},
+            style={
+                "display": "flex",
+                "gap": "20px",
+                "marginBottom": "20px",
+                "alignItems": "flex-end",
+            },
             children=[
+
+                # Patient dropdown
                 html.Div(
                     style={"flex": "1"},
                     children=[
@@ -107,6 +129,8 @@ app.layout = html.Div(
                         ),
                     ],
                 ),
+
+                # Frame dropdown
                 html.Div(
                     style={"flex": "1"},
                     children=[
@@ -115,13 +139,15 @@ app.layout = html.Div(
                             id="frame-dropdown",
                             options=[
                                 {"label": f, "value": f}
-                                for f in (PATIENT_FRAMES.get(default_patient, []))
+                                for f in PATIENT_FRAMES.get(default_patient, [])
                             ],
                             value=default_frame,
                             clearable=False,
                         ),
                     ],
                 ),
+
+                # Overlay and Classes checklists
                 html.Div(
                     style={"flex": "1"},
                     children=[
@@ -129,42 +155,160 @@ app.layout = html.Div(
                         dcc.Checklist(
                             id="overlay-checklist",
                             options=[
-                                {"label": "Ground truth", "value": "gt"},
-                                {"label": "Baseline model", "value": "baseline_unet"},
-                                # For Phase 2:
-                                # {"label": "Advanced model", "value": "advanced_unet"},
+                                {"label": " Ground truth", "value": "gt"},
+                                {"label": " Baseline model", "value": "baseline_unet"},
+                                {"label": " Advanced model", "value": "advanced_unet"},
                             ],
-                            value=["gt", "baseline_unet"],
+                            value=["gt", "baseline_unet", "advanced_unet"],
                             labelStyle={"display": "block"},
                         ),
                     ],
                 ),
+
+                html.Div(
+                    style={"flex": "1"},
+                    children=[
+                        html.Label("Classes"),
+                        dcc.Checklist(
+                            id="class-checklist",
+                            options=[
+                                {"label": " Right Ventricle (RV)", "value": 1},
+                                {"label": " Myocardium (MYO)", "value": 2},
+                                {"label": " Left Ventricle (LV)", "value": 3},
+                            ],
+                            value=[1, 2, 3],  # all visible by default
+                            labelStyle={"display": "block"},
+                        ),
+                    ],   
+                ),
             ],
         ),
 
+        # -----------------------
+        # Slice Slider
+        # -----------------------
         html.Div(
-            style={"marginBottom": "10px"},
+            style={"marginBottom": "20px"},
             children=[
                 html.Label("Slice index"),
                 dcc.Slider(
                     id="slice-slider",
                     min=0,
-                    max=9,          # will be updated dynamically
+                    max=9,   # updated dynamically in callback
                     step=1,
                     value=5,
                     marks={i: str(i) for i in range(10)},
-                    tooltip={"placement": "bottom", "always_visible": False},
+                    tooltip={"placement": "bottom"},
                 ),
             ],
         ),
 
-        dcc.Graph(
-            id="slice-view",
-            style={"height": "650px"},
+        # -----------------------
+        # Main Content Row (Legend + Viewer)
+        # -----------------------
+        html.Div(
+            style={
+                "display": "flex",
+                "gap": "25px",
+                "alignItems": "flex-start",
+            },
+            children=[
+
+                # -------- Legend Panel --------
+                html.Div(
+                    style={
+                        "border": "1px solid #ddd",
+                        "borderRadius": "8px",
+                        "padding": "14px 16px",
+                        "width": "260px",
+                        "backgroundColor": "#fafafa",
+                        "boxShadow": "0 2px 6px rgba(0,0,0,0.05)",
+                    },
+                    children=[
+                        html.Div(
+                            "Segmentation Legend",
+                            style={
+                                "fontWeight": "bold",
+                                "marginBottom": "12px",
+                                "fontSize": "15px",
+                            },
+                        ),
+
+                        # RV
+                        html.Div(
+                            style={
+                                "display": "flex",
+                                "alignItems": "center",
+                                "marginBottom": "8px",
+                            },
+                            children=[
+                                html.Div(
+                                    style={
+                                        "width": "16px",
+                                        "height": "16px",
+                                        "backgroundColor": "red",
+                                        "marginRight": "8px",
+                                    }
+                                ),
+                                html.Span("Right Ventricle (RV)")
+                            ],
+                        ),
+
+                        # MYO
+                        html.Div(
+                            style={
+                                "display": "flex",
+                                "alignItems": "center",
+                                "marginBottom": "8px",
+                            },
+                            children=[
+                                html.Div(
+                                    style={
+                                        "width": "16px",
+                                        "height": "16px",
+                                        "backgroundColor": "gold",
+                                        "marginRight": "8px",
+                                    }
+                                ),
+                                html.Span("Myocardium (MYO)")
+                            ],
+                        ),
+
+                        # LV
+                        html.Div(
+                            style={
+                                "display": "flex",
+                                "alignItems": "center",
+                            },
+                            children=[
+                                html.Div(
+                                    style={
+                                        "width": "16px",
+                                        "height": "16px",
+                                        "backgroundColor": "blue",
+                                        "marginRight": "8px",
+                                    }
+                                ),
+                                html.Span("Left Ventricle (LV)")
+                            ],
+                        ),
+                    ],
+                ),
+
+                # -------- Slice Viewer --------
+                html.Div(
+                    style={"flex": "1"},
+                    children=[
+                        dcc.Graph(
+                            id="slice-view",
+                            style={"height": "650px"},
+                        ),
+                    ],
+                ),
+            ],
         ),
     ],
 )
-
 
 # ---------- Callbacks ---------- #
 
@@ -217,8 +361,9 @@ def update_slice_slider(selected_patient, selected_frame):
     Input("frame-dropdown", "value"),
     Input("slice-slider", "value"),
     Input("overlay-checklist", "value"),
+    Input("class-checklist", "value")
 )
-def update_slice_view(selected_patient, selected_frame, slice_idx, modes):
+def update_slice_view(selected_patient, selected_frame, slice_idx, modes, classes):
     """
     Main viewer callback: load volume, compute overlays, and render figure.
     """
@@ -237,7 +382,7 @@ def update_slice_view(selected_patient, selected_frame, slice_idx, modes):
     slice_lbl = vol_lbl[slice_idx]  # (H, W), values 0..3
 
     # LV ground truth mask (class 3)
-    gt_mask = (slice_lbl == 3).astype(np.uint8)
+    gt_mask = slice_lbl.astype(np.uint8)
 
     # Predicted masks for each requested model
     pred_masks = {}
@@ -245,6 +390,7 @@ def update_slice_view(selected_patient, selected_frame, slice_idx, modes):
 
     if "baseline_unet" in modes and "baseline_unet" in MODELS:
         pred_masks["baseline_unet"] = predict_mask(
+            "baseline_unet",
             MODELS["baseline_unet"],
             slice_img,
             (H, W),
@@ -253,20 +399,25 @@ def update_slice_view(selected_patient, selected_frame, slice_idx, modes):
         pred_masks["baseline_unet"] = None
 
     # Example for Phase 2:
-    # if "advanced_unet" in modes and "advanced_unet" in MODELS:
-    #     pred_masks["advanced_unet"] = predict_mask(
-    #         MODELS["advanced_unet"],
-    #         slice_img,
-    #         (H, W),
-    #     )
-    # else:
-    #     pred_masks["advanced_unet"] = None
+    if "advanced_unet" in modes and "advanced_unet" in MODELS:
+        pred_masks["advanced_unet"] = predict_mask(
+            "advanced_unet",
+            MODELS["advanced_unet"],
+            slice_img,
+            (H, W),
+        )
+    else:
+        pred_masks["advanced_unet"] = None
+    
+    # Convert list of selected visible classes to List[int]
+    classes = np.array(classes).astype(np.uint8)
 
     overlay_img = make_overlay(
         slice_2d=slice_img,
         gt_mask=gt_mask,
         pred_masks=pred_masks,
         modes=modes,
+        classes=classes
     )
 
     fig = px.imshow(overlay_img)

@@ -67,17 +67,17 @@ def load_models() -> Dict[str, keras.Model]:
         )
 
     # Example for Phase 2:
-    # model_b_path = MODEL_DIR / "unet_lv_advanced_256.keras"
-    # if model_b_path.exists():
-    #     models["advanced_unet"] = keras.models.load_model(
-    #         model_b_path,
-    #         compile=False
-    #     )
+    model_b_path = MODEL_DIR / "unet_deep_256_full.keras"
+    if model_b_path.exists():
+        models["advanced_unet"] = keras.models.load_model(
+        model_b_path,
+        compile=False
+        )
 
     return models
 
 
-def preprocess_slice_for_model(slice_2d: np.ndarray) -> np.ndarray:
+def preprocess_slice_for_model(slice_2d: np.ndarray, target_size: int) -> np.ndarray:
     """
     Resize + normalize a single 2D slice to feed the 2D U-Net.
 
@@ -90,7 +90,7 @@ def preprocess_slice_for_model(slice_2d: np.ndarray) -> np.ndarray:
     x : (1, IMG_SIZE, IMG_SIZE, 1) float32
     """
     # Resize to training resolution
-    resized = cv2.resize(slice_2d, (IMG_SIZE, IMG_SIZE))
+    resized = cv2.resize(slice_2d, (target_size, target_size))
     resized = resized.astype(np.float32)
 
     # Normalize to [0, 1]
@@ -104,7 +104,7 @@ def preprocess_slice_for_model(slice_2d: np.ndarray) -> np.ndarray:
     return x
 
 
-def predict_mask(model: keras.Model,
+def predict_mask(model_name: str, model: keras.Model,
                  slice_2d: np.ndarray,
                  orig_shape: Tuple[int, int]) -> np.ndarray:
     """
@@ -120,103 +120,110 @@ def predict_mask(model: keras.Model,
     -------
     pred_bin : (H_orig, W_orig) uint8, {0,1}
     """
-    x = preprocess_slice_for_model(slice_2d)
-    pred = model.predict(x, verbose=0)[0, ..., 0]   # (IMG_SIZE, IMG_SIZE)
+    
+    if model_name == "baseline_unet":
+        target_size = 128
+        x = preprocess_slice_for_model(slice_2d, target_size)
+        pred = model.predict(x, verbose=0)[0, ..., 0]   # (IMG_SIZE, IMG_SIZE)
+        # Resize prediction back to original slice resolution
+        pred_resized = cv2.resize(
+            pred,
+            (orig_shape[1], orig_shape[0]),
+            interpolation=cv2.INTER_LINEAR
+        )
+        label_map = np.zeros_like(pred_resized, dtype=np.uint8)
+        label_map[pred_resized > 0.5] = 3   # map LV → class 3
 
-    # Resize prediction back to original slice resolution
-    pred_resized = cv2.resize(
-        pred,
-        (orig_shape[1], orig_shape[0])
-    )
-    pred_bin = (pred_resized > 0.5).astype(np.uint8)
-    return pred_bin
+    elif model_name == "advanced_unet":
+        target_size = 256
+        x = preprocess_slice_for_model(slice_2d, target_size)
+        pred = model.predict(x, verbose=0)[0] # Full prediction tensor (H, W, 4)
+        label_map = np.argmax(pred, axis=-1)   # (H, W)
+        label_map = cv2.resize(
+            label_map,
+            (orig_shape[1], orig_shape[0]),
+            interpolation=cv2.INTER_NEAREST
+        )
+
+    return label_map
+
 
 
 # --------- Overlay creation --------- #
-
 def make_overlay(
     slice_2d: np.ndarray,
     gt_mask: Optional[np.ndarray],
     pred_masks: Dict[str, Optional[np.ndarray]],
     modes: List[str],
+    classes: List[int],
+    alpha: float = 0.6,
 ) -> np.ndarray:
     """
-    Build an RGB overlay from:
-      - base MRI slice
-      - optional ground truth mask
-      - optional 1 or more predicted masks
+    Build an RGB overlay with multi-class ground truth and predictions.
 
     Parameters
     ----------
     slice_2d : (H, W) float32
-    gt_mask  : (H, W) uint8 or None
-        Binary LV mask from ground truth.
-    pred_masks : dict[model_id, mask]
-        Each mask is (H, W) uint8 or None.
-    modes : list of strings
-        Selected overlays from the UI, e.g.
-        ["gt", "baseline_unet"] or ["gt", "baseline_unet", "advanced_unet"]
-
-    Color convention
-    ----------------
-    - Background      : grayscale MRI
-    - GT only         : green
-    - Baseline only   : red
-    - Advanced only   : blue (Phase 2, if added)
-    - Overlaps:
-        GT + baseline : yellow (red + green)
-        GT + advanced : cyan   (green + blue)
-        baseline + advanced : magenta (red + blue)
-        all three : white
+        Raw MRI slice.
+    gt_mask : (H, W) uint8 or None
+        Ground truth class map {0,1,2,3}.
+    pred_masks : dict[str, ndarray or None]
+        Model predictions as class maps.
+    modes : list[str]
+        Active overlays (e.g. ["gt", "baseline_unet", "advanced_unet"])
+    classes: List[int]
+        Which classes need to be visible
+    alpha : float
+        Overlay transparency.
 
     Returns
     -------
     overlay_rgb : (H, W, 3) uint8
     """
+
+    # -------------------------
+    # Normalize MRI background
+    # -------------------------
     img = slice_2d.astype(np.float32)
     img -= img.min()
     if img.max() > 0:
         img /= img.max()
-    img_uint8 = (img * 255).astype(np.uint8)
+    base_rgb = np.stack([img, img, img], axis=-1)
+    base_rgb = (base_rgb * 255).astype(np.uint8)
 
-    # Base grayscale to RGB
-    overlay = cv2.cvtColor(img_uint8, cv2.COLOR_GRAY2RGB)
+    overlay = base_rgb.copy()
 
-    H, W = overlay.shape[:2]
+    # -------------------------
+    # Class color definitions
+    # -------------------------
+    CLASS_COLORS = {
+        1: np.array([255,   0,   0]),   # RV
+        2: np.array([255, 255,   0]),   # MYO
+        3: np.array([  0,   0, 255]),   # LV
+    }
 
-    # Prepare masks
-    gt = gt_mask.astype(bool) if (gt_mask is not None and "gt" in modes) else np.zeros((H, W), dtype=bool)
-    base = pred_masks.get("baseline_unet")
-    adv = pred_masks.get("advanced_unet")  # optional, Phase 2
+    def apply_mask(label_map: np.ndarray):
+        nonlocal overlay
+        for cls, color in CLASS_COLORS.items():
+            if cls not in classes: 
+                continue 
+            mask = label_map == cls
+            overlay[mask] = (
+                (1 - alpha) * overlay[mask] + alpha * color
+            ).astype(np.uint8)
 
-    base = base.astype(bool) if (base is not None and "baseline_unet" in modes) else np.zeros((H, W), dtype=bool)
-    adv = adv.astype(bool) if (adv is not None and "advanced_unet" in modes) else np.zeros((H, W), dtype=bool)
+    # -------------------------
+    # Ground truth overlay
+    # -------------------------
+    if gt_mask is not None and "gt" in modes:
+        apply_mask(gt_mask)
 
-    # Region combinations
-    all_three = gt & base & adv
-    gt_base = gt & base & ~adv
-    gt_adv = gt & adv & ~base
-    base_adv = base & adv & ~gt
-    only_gt = gt & ~base & ~adv
-    only_base = base & ~gt & ~adv
-    only_adv = adv & ~gt & ~base
-
-    # Apply colors
-    # GT only: green
-    overlay[only_gt] = [0, 255, 0]
-
-    # Baseline only: red
-    overlay[only_base] = [255, 0, 0]
-
-    # Advanced only (Phase 2): blue
-    overlay[only_adv] = [0, 0, 255]
-
-    # Overlaps:
-    overlay[gt_base] = [255, 255, 0]     # yellow
-    overlay[gt_adv] = [0, 255, 255]      # cyan
-    overlay[base_adv] = [255, 0, 255]    # magenta
-    overlay[all_three] = [255, 255, 255] # white
+    # -------------------------
+    # Model predictions
+    # -------------------------
+    for model_name, label_map in pred_masks.items():
+        if label_map is not None and model_name in modes:
+            apply_mask(label_map)
 
     return overlay
-
 
