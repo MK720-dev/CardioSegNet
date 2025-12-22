@@ -14,6 +14,7 @@ Quick Phase 1 demo available here (click **view raw** to download):
 👉 [Download / Watch Demo](./CardioSegNet1.0_demo.mp4)
 
 Phase 2 demo will be available soon:
+
 👉 [Download / Watch Demo](./CardioSegNet2.0_demo.mp4)
 
 ---
